@@ -15,7 +15,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  PHP_VERSION: '8.2'
+  PHP_VERSION: '8.4'
   COMPOSER_CACHE_DIR: '$(Pipeline.Workspace)/.composer'
 
 steps:
