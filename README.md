@@ -2,8 +2,7 @@
 ## Description
 This is a Laravel-based microservice.
 It can accept SVGs via its API, and it returns a base64-encoded-PNG string
-
-
+It's currently dev-only, and is set up using Sail.  Includes redis container
 
 
 #### POST /api/convert
@@ -55,9 +54,8 @@ Errors:
 
 
 ## Notes
-- **Dependencies Already Included**: Guzzle HTTP, Faker for testing, and Symfony components are already available in your composer setup
-- **Queue Processing**: Database queue is configured; consider Redis in future scaling phases
-- **Testing**: PHPUnit and Mockery are ready for use throughout all phases
-- **Frontend Integration**: Tailwind CSS and Vite are available if you need to build a testing UI
+- **Dependencies Already Included**: Guzzle HTTP, Faker for testing, and Symfony components are already available in composer setup
+- **Queue Processing**: Redis 
+- **Testing**: PHPUnit and Mockery are ready for use
 
 
