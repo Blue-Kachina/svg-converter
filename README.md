@@ -1,0 +1,226 @@
+# SVG Converter
+## Description
+This is a Laravel-based microservice.
+It can accept SVGs via its API, and it returns a base64-encoded-PNG string
+
+
+# SVG Converter Development Roadmap
+
+Based on the project description, here's a structured development roadmap for your Laravel-based SVG to PNG conversion microservice:
+
+## Phase 1: Foundation & Setup
+### 1.1 Project Infrastructure
+- [x] Initialize Laravel project structure with proper environment configuration
+- [x] Set up database migrations and seeders
+- [x] Configure queue system (using database connection as specified)
+- [x] Set up logging and monitoring with Monolog
+
+### 1.2 API Framework
+- [x] Create base API controller with request/response handling
+- [x] Implement request validation middleware
+- [x] Set up error handling and exception mapping
+- [x] Configure CORS (using fruitcake/php-cors)
+
+### 1.3 Testing Infrastructure
+- [x] Set up PHPUnit test configuration
+- [x] Create test helper classes and factories
+- [x] Configure Mockery for mocking dependencies
+- [x] Establish test database setup/teardown
+
+### 1.4 Retrofit Octane Into Setup
+- [x] Install and configure Laravel Octane with FrankenPHP
+- [x] Verify your current database configuration works with long-running processes
+- [x] Test your queue setup (database connection) under Octane
+- [x] Verify Monolog logging works correctly in persistent application state
+- [x] Test your API controllers and middleware for state isolation issues
+- [x] Run through basic request/response cycles to ensure no state leakage
+
+
+---
+
+## Phase 2: Core SVG Processing
+### 2.1 SVG Input Handler
+- [x] Create SVG validation service (format, size limits, security)
+- [x] Implement SVG string parsing and sanitization
+- [x] Add protection against malicious SVG content
+- [x] Write unit tests for input validation
+
+### 2.2 SVG to PNG Conversion Engine
+- [x] Research and integrate SVG rendering library (e.g., Imagick, or external service)
+- [x] Create conversion service wrapper
+- [x] Implement base64 encoding for PNG output
+- [x] Add error handling for conversion failures
+- [x] Write integration tests for conversion process
+
+### 2.3 Performance Optimization
+- [x] Implement caching for duplicate conversions
+- [x] Add file size validation and optimization
+- [x] Create cleanup mechanisms for temporary files
+
+---
+
+## Phase 3: API Endpoints
+### 3.1 Primary Conversion Endpoint
+- [x] Create POST `/api/convert` endpoint
+- [x] Implement request body schema (SVG string input)
+- [x] Generate base64-encoded PNG response
+- [x] Add comprehensive API documentation
+
+#### POST /api/convert
+- Method: `POST`
+- Path: `/api/convert`
+- Content-Type: `application/json`
+
+Request body:
+```json
+{
+  "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><rect width=\"100\" height=\"100\" fill=\"#09f\"/></svg>",
+  "options": {
+    "width": 100,
+    "height": 100,
+    "density": 300,
+    "background": "#ffffff",
+    "quality": 90
+  }
+}
+```
+
+- `svg` (required): SVG XML string.
+- `options` (optional):
+  - `width` (int, 1-8192)
+  - `height` (int, 1-8192)
+  - `density` (int, 1-1200)
+  - `background` (string, e.g. `#ffffff`)
+  - `quality` (int, 1-100)
+
+Response 200 (application/json):
+```json
+{
+  "success": true,
+  "data": {
+    "png_base64": "iVBORw0KGgoAAAANSUhEUgAA..." 
+  },
+  "meta": {
+    "duration_ms": 42,
+    "content_length": 12345
+  }
+}
+```
+
+Errors:
+- 422 VALIDATION_ERROR — malformed input or invalid options.
+- 400 CONVERSION_FAILED — conversion error (invalid svg or exceeds limits).
+- 500 INTERNAL_ERROR — unexpected server error.
+
+### 3.2 Health & Status Endpoints
+- [x] Create GET `/health` endpoint for service health checks
+- [x] Implement GET `/status` for detailed service status
+- [x] Add diagnostic information
+
+### 3.3 Batch Processing Endpoint
+- [ ] Create POST `/api/batch-convert` for multiple SVGs (optional)
+- [ ] Implement queue-based processing
+- [ ] Add status polling mechanism
+
+---
+
+## Phase 4: Background Jobs & Queues
+### 4.1 Asynchronous Processing
+- [ ] Create conversion job class
+- [ ] Configure database queue driver
+- [ ] Implement job failure handling and retries
+- [ ] Add job monitoring and logging
+
+### 4.2 Result Management
+- [ ] Create temporary storage solution for processing
+- [ ] Implement result retrieval mechanism
+- [ ] Add automatic cleanup of old results
+
+---
+
+## Phase 5: Security & Validation
+### 5.1 Request Security
+- [ ] Implement rate limiting
+- [ ] Add API key/authentication if needed
+- [ ] Validate input size constraints
+- [ ] Implement request signing (optional)
+
+### 5.2 SVG Security
+- [ ] Sanitize SVG content to prevent XSS
+- [ ] Validate SVG structure and format
+- [ ] Block potentially dangerous SVG elements
+- [ ] Test with malicious SVG payloads
+
+### 5.3 Output Security
+- [ ] Verify PNG output integrity
+- [ ] Add Content-Type headers correctly
+- [ ] Implement output size limits
+
+---
+
+## Phase 6: Testing & Quality Assurance
+### 6.1 Unit Tests
+- [ ] Write tests for SVG validation service
+- [ ] Write tests for conversion service
+- [ ] Write tests for encoding logic
+- [ ] Achieve 80%+ code coverage
+
+### 6.2 Integration Tests
+- [ ] Test complete API workflows
+- [ ] Test queue processing
+- [ ] Test error scenarios
+- [ ] Test with real SVG samples
+
+### 6.3 Performance Testing
+- [ ] Benchmark conversion speeds
+- [ ] Test memory usage under load
+- [ ] Load test API endpoints
+- [ ] Optimize bottlenecks
+
+---
+
+## Phase 7: Monitoring & Observability
+### 7.1 Logging
+- [ ] Implement structured logging with Monolog
+- [ ] Add request/response logging
+- [ ] Log conversion metrics and errors
+- [ ] Set up log aggregation
+
+### 7.2 Metrics & Monitoring
+- [ ] Add performance metrics collection
+- [ ] Implement error rate tracking
+- [ ] Create conversion success/failure metrics
+- [ ] Set up alerting thresholds
+
+---
+
+## Phase 8: Documentation & Deployment
+### 8.1 Documentation
+- [ ] Write API documentation (OpenAPI/Swagger)
+- [ ] Create setup and installation guide
+- [ ] Document configuration options
+- [ ] Add troubleshooting guide
+- [ ] Create usage examples
+
+### 8.2 Deployment Preparation
+- [ ] Create Docker configuration (optional)
+- [ ] Set up environment-based configuration
+- [ ] Prepare deployment scripts
+- [ ] Create database migration automation
+
+### 8.3 Launch
+- [ ] Final security audit
+- [ ] Performance baseline testing
+- [ ] Deployment to staging
+- [ ] Production deployment
+- [ ] Monitor for issues
+
+---
+
+## Notes
+- **Dependencies Already Included**: Guzzle HTTP, Faker for testing, and Symfony components are already available in your composer setup
+- **Queue Processing**: Database queue is configured; consider Redis in future scaling phases
+- **Testing**: PHPUnit and Mockery are ready for use throughout all phases
+- **Frontend Integration**: Tailwind CSS and Vite are available if you need to build a testing UI
+
+
