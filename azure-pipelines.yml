@@ -53,7 +53,7 @@ steps:
   # Run tests and emit JUnit report for Azure DevOps
   - script: |
       mkdir -p test-results
-      php artisan test -v --log-junit test-results/junit.xml
+      php artisan test --verbose --log-junit test-results/junit.xml
     displayName: 'Run tests'
 
   - task: PublishTestResults@2
