@@ -1,0 +1,67 @@
+# Azure DevOps CI for Laravel tests
+# Runs on every push/PR, installs PHP + dependencies, boots app key, runs tests, and publishes results.
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+      - feature/*
+
+pr:
+  branches:
+    include:
+      - '*'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  PHP_VERSION: '8.2'
+  COMPOSER_CACHE_DIR: '$(Pipeline.Workspace)/.composer'
+
+steps:
+  - checkout: self
+    fetchDepth: 0
+
+  # Select PHP version available on the hosted agent toolcache
+  - task: UsePHPVersion@0
+    inputs:
+      versionSpec: '$(PHP_VERSION)'
+      addToPath: true
+
+  # Cache Composer download cache (improves subsequent build times)
+  - task: Cache@2
+    displayName: 'Cache Composer cache'
+    inputs:
+      key: 'composer | "$(Agent.OS)" | **/composer.lock'
+      restoreKeys: |
+        composer | "$(Agent.OS)"
+      path: '$(COMPOSER_CACHE_DIR)'
+
+  - script: |
+      composer --version
+      composer install --no-interaction --no-progress --prefer-dist
+    displayName: 'Install Composer dependencies'
+    env:
+      COMPOSER_CACHE_DIR: '$(COMPOSER_CACHE_DIR)'
+
+  # Prepare Laravel app for tests (DB not required for this project)
+  - script: |
+      cp .env.example .env
+      php artisan key:generate
+    displayName: 'Bootstrap Laravel (.env + app key)'
+
+  # Run tests and emit JUnit report for Azure DevOps
+  - script: |
+      mkdir -p test-results
+      php artisan test -v --log-junit test-results/junit.xml
+    displayName: 'Run tests'
+
+  - task: PublishTestResults@2
+    displayName: 'Publish PHPUnit JUnit results'
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: 'test-results/junit.xml'
+      testRunTitle: 'PHPUnit'
+      failTaskOnFailedTests: true
