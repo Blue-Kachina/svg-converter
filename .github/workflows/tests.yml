@@ -1,0 +1,92 @@
+# GitHub Actions CI for Laravel tests
+# - Runs on push and PR for main/develop/feature/* branches
+# - Installs PHP + extensions, caches Composer, boots app key, runs tests
+# - Uploads JUnit results as an artifact
+#
+# Notes for this repo:
+# - The test suite does not require a database.
+# - Imagick-based tests will skip if the php-imagick extension is not installed.
+# - To enable coverage, see the commented Xdebug section.
+
+name: tests
+
+on:
+  push:
+    branches: [ '**' ]
+    paths-ignore:
+      - '**/*.md'
+      - '**/.gitignore'
+      - '.github/ISSUE_TEMPLATE/**'
+  pull_request:
+    branches: [ '**' ]
+
+jobs:
+  phpunit:
+    runs-on: ubuntu-latest
+
+    env:
+      APP_ENV: testing
+      # Speeds up Composer by using its cache directory
+      COMPOSER_CACHE_DIR: ~/.composer/cache/files
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          extensions: mbstring, xml, curl, zip, gd
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.COMPOSER_CACHE_DIR }}
+          key: composer-${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            composer-${{ runner.os }}-
+
+      - name: Install Composer dependencies
+        run: |
+          composer --version
+          composer install --no-interaction --no-progress --prefer-dist
+
+      # Optional: install Imagick so Imagick tests run instead of skipping
+      - name: Install Imagick (optional)
+        run: |
+         sudo apt-get update
+         sudo apt-get install -y imagemagick php-imagick
+         php -m | grep -i imagick || true
+         convert -version || true
+
+      - name: Bootstrap Laravel (.env + app key)
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run tests (with JUnit output)
+        run: |
+          mkdir -p test-results
+          php artisan test -v --log-junit test-results/junit.xml
+
+      - name: Upload JUnit test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phpunit-junit
+          path: test-results
+
+      # Optional: enable coverage via Xdebug and upload coverage artifact
+      # - name: Enable Xdebug and run coverage (optional)
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y php-xdebug
+      #     mkdir -p coverage
+      #     php -d zend_extension=xdebug.so artisan test --coverage-clover coverage/clover.xml
+      # - name: Upload coverage artifact (optional)
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage-clover
+      #     path: coverage/clover.xml
