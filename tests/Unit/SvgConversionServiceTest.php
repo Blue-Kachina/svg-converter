@@ -6,7 +6,7 @@ use App\Exceptions\SvgConversionException;
 use App\Services\Svg\ImagickSvgConverter;
 use App\Services\Svg\SvgConversionService;
 use App\Services\Svg\SvgInputValidator;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 use Tests\Support\InteractsWithSvg;
 
 class SvgConversionServiceTest extends TestCase

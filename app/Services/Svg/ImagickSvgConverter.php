@@ -17,11 +17,17 @@ class ImagickSvgConverter implements SvgConverterInterface
             throw SvgConversionException::imagickNotAvailable();
         }
 
-        $density = isset($options['density']) ? (int) $options['density'] : (int) (config('svg.conversion.density', 144));
-        $bg = $options['background'] ?? (string) (config('svg.conversion.background', 'transparent'));
+        $hasConfig = function_exists('config');
+        $density = isset($options['density'])
+            ? (int) $options['density']
+            : (int) ($hasConfig ? config('svg.conversion.density', 144) : 144);
+        $bg = $options['background']
+            ?? (string) ($hasConfig ? config('svg.conversion.background', 'transparent') : 'transparent');
         $targetWidth = isset($options['width']) ? (int) $options['width'] : null;
         $targetHeight = isset($options['height']) ? (int) $options['height'] : null;
-        $quality = isset($options['quality']) ? (int) $options['quality'] : (int) (config('svg.conversion.quality', 90));
+        $quality = isset($options['quality'])
+            ? (int) $options['quality']
+            : (int) ($hasConfig ? config('svg.conversion.quality', 90) : 90);
 
         try {
             $imagick = new Imagick();

@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use App\Services\Svg\SvgInputValidator;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 use Tests\Support\InteractsWithSvg;
 
 class SvgInputValidatorTest extends TestCase
