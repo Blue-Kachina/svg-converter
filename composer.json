@@ -57,6 +57,7 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
+            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
             "@php artisan test"
         ],
         "post-autoload-dump": [
