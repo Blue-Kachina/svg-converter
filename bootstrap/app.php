@@ -23,6 +23,15 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\EnsureJsonRequest::class,
             // CORS
             \Illuminate\Http\Middleware\HandleCors::class,
+            // Optional API key and request signing (no-op when disabled)
+            \App\Http\Middleware\ApiKeyAuth::class,
+            \App\Http\Middleware\ApiRequestSigning::class,
+        ]);
+
+        // Aliases
+        $middleware->alias([
+            'api.key' => \App\Http\Middleware\ApiKeyAuth::class,
+            'api.sign' => \App\Http\Middleware\ApiRequestSigning::class,
         ]);
 
         // Global HTTP request/response logging
@@ -30,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withProviders([
         \App\Providers\OctaneServiceProvider::class,
+        \App\Providers\RateLimiterServiceProvider::class,
     ])
     ->withExceptions(function (Exceptions $exceptions): void {
         // Always render JSON for API routes

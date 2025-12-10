@@ -31,6 +31,18 @@ class BatchConvertController extends BaseApiController
             'items.*.options.quality' => ['integer', 'min:1', 'max:100'],
         ]);
 
+        // Enforce per-item SVG byte-size constraint early
+        $maxBytes = (int) config('svg.max_bytes', 512 * 1024);
+        $errors = [];
+        foreach ($data['items'] as $i => $item) {
+            if (strlen($item['svg']) > $maxBytes) {
+                $errors["items.{$i}.svg"] = ["SVG exceeds maximum allowed size (max {$maxBytes} bytes)"];
+            }
+        }
+        if (!empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
+
         // Create a batch of jobs
         $jobs = [];
         foreach ($data['items'] as $i => $item) {

@@ -10,20 +10,20 @@ use App\Http\Controllers\Api\BatchConvertController;
 
 Route::middleware('api')
     ->group(function () {
-        Route::get('/ping', [PingController::class, 'ping']);
+        Route::get('/ping', [PingController::class, 'ping'])->middleware('throttle:status');
 
         // Primary conversion endpoint
-        Route::post('/convert', [ConvertController::class, 'convert']);
+        Route::post('/convert', [ConvertController::class, 'convert'])->middleware('throttle:convert');
 
         // Health & status endpoints
-        Route::get('/health', [HealthController::class, 'health']);
-        Route::get('/status', [StatusController::class, 'status']);
+        Route::get('/health', [HealthController::class, 'health'])->middleware('throttle:status');
+        Route::get('/status', [StatusController::class, 'status'])->middleware('throttle:status');
 
         // Batch conversion endpoints
-        Route::post('/batch-convert', [BatchConvertController::class, 'batchConvert']);
-        Route::get('/batch/{id}', [BatchConvertController::class, 'batchStatus']);
+        Route::post('/batch-convert', [BatchConvertController::class, 'batchConvert'])->middleware('throttle:batch');
+        Route::get('/batch/{id}', [BatchConvertController::class, 'batchStatus'])->middleware('throttle:status');
 
         // Octane diagnostics
-        Route::get('/octane/diag', [OctaneDiagnosticsController::class, 'diag']);
-        Route::post('/octane/queue-test', [OctaneDiagnosticsController::class, 'queueTest']);
+        Route::get('/octane/diag', [OctaneDiagnosticsController::class, 'diag'])->middleware('throttle:status');
+        Route::post('/octane/queue-test', [OctaneDiagnosticsController::class, 'queueTest'])->middleware('throttle:batch');
     });

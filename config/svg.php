@@ -11,6 +11,34 @@ return [
     // Whether to allow remote http(s) references in href/xlink:href
     'allow_remote_refs' => env('SVG_ALLOW_REMOTE_REFS', false),
 
+    // Rate limiting per endpoint
+    'rate_limits' => [
+        'convert' => env('SVG_RATE_LIMIT_CONVERT', 60), // per minute per IP/user
+        'batch'   => env('SVG_RATE_LIMIT_BATCH', 15),
+        'status'  => env('SVG_RATE_LIMIT_STATUS', 120),
+    ],
+
+    // Optional API key authentication
+    'auth' => [
+        'enabled' => env('SVG_API_AUTH_ENABLED', false),
+        // Comma-separated list of valid keys
+        'keys' => env('SVG_API_KEYS', ''),
+        // Header name to read from
+        'header' => env('SVG_API_KEY_HEADER', 'X-API-Key'),
+
+        // Optional HMAC request signing
+        'signing' => [
+            'enabled' => env('SVG_SIGNING_ENABLED', false),
+            'secret' => env('SVG_SIGNING_SECRET', ''),
+            'signature_header' => env('SVG_SIGNATURE_HEADER', 'X-Signature'),
+            'timestamp_header' => env('SVG_TIMESTAMP_HEADER', 'X-Signature-Timestamp'),
+            // allowed clock skew in seconds
+            'skew' => env('SVG_SIGNATURE_SKEW', 300),
+            // algorithm: sha256, sha1, etc.
+            'algo' => env('SVG_SIGNATURE_ALGO', 'sha256'),
+        ],
+    ],
+
     // Conversion settings
     'conversion' => [
         'driver' => env('SVG_CONVERSION_DRIVER', 'imagick'),

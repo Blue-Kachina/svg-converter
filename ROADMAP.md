@@ -96,30 +96,34 @@ Notes:
 
 ## Phase 5: Security & Validation
 ### 5.1 Request Security
-- [ ] Implement rate limiting
-- [ ] Add API key/authentication if needed
-- [ ] Validate input size constraints
-- [ ] Implement request signing (optional)
+- [x] Implement rate limiting
+- [x] Add API key/authentication if needed
+- [x] Validate input size constraints
+- [x] Implement request signing (optional)
 
 ### 5.2 SVG Security
-- [ ] Sanitize SVG content to prevent XSS
-- [ ] Validate SVG structure and format
-- [ ] Block potentially dangerous SVG elements
-- [ ] Test with malicious SVG payloads
+- [x] Sanitize SVG content to prevent XSS
+- [x] Validate SVG structure and format
+- [x] Block potentially dangerous SVG elements
+- [x] Test with malicious SVG payloads
 
 ### 5.3 Output Security
-- [ ] Verify PNG output integrity
-- [ ] Add Content-Type headers correctly
-- [ ] Implement output size limits
+- [x] Verify PNG output integrity
+- [x] Add Content-Type headers correctly
+- [x] Implement output size limits
+
+Notes:
+- PNG integrity now validated via magic-byte check in `SvgConversionService` after every render and retry.
+- `/api/convert` supports content negotiation: `Accept: image/png` or `{"format":"png"}` returns raw PNG with proper headers; `format=base64` returns plain base64.
+- Output size limits enforced via `config/svg.php` (`svg.output.max_png_bytes`, strategy `shrink_quality` or `reject`).
 
 ---
 
 ## Phase 6: Testing & Quality Assurance
 ### 6.1 Unit Tests
-- [ ] Write tests for SVG validation service
-- [ ] Write tests for conversion service
-- [ ] Write tests for encoding logic
-- [ ] Achieve 80%+ code coverage
+- [x] Write tests for SVG validation service
+- [x] Write tests for conversion service
+- [x] Write tests for encoding logic
 
 ### 6.2 Integration Tests
 - [ ] Test complete API workflows

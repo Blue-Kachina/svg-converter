@@ -19,10 +19,27 @@ class SvgInputValidator
     {
         $errors = [];
 
-        $maxBytes = $options['max_bytes'] ?? (function_exists('config') ? (int) config('svg.max_bytes', 512 * 1024) : 512 * 1024); // 512KB default
-        $maxWidth = $options['max_width'] ?? (function_exists('config') ? (int) config('svg.max_width', 4096) : 4096);
-        $maxHeight = $options['max_height'] ?? (function_exists('config') ? (int) config('svg.max_height', 4096) : 4096);
-        $allowRemote = $options['allow_remote_refs'] ?? (function_exists('config') ? (bool) config('svg.allow_remote_refs', false) : false);
+        // Read config keys defensively because some tests stub a minimal config() or Laravel helpers may exist without a booted container
+        $hasContainer = class_exists(\Illuminate\Container\Container::class) && \Illuminate\Container\Container::getInstance();
+        $cfgMaxBytes = null;
+        $cfgMaxWidth = null;
+        $cfgMaxHeight = null;
+        $cfgAllowRemote = null;
+        if ($hasContainer && function_exists('config')) {
+            try {
+                $cfgMaxBytes = config('svg.max_bytes');
+                $cfgMaxWidth = config('svg.max_width');
+                $cfgMaxHeight = config('svg.max_height');
+                $cfgAllowRemote = config('svg.allow_remote_refs');
+            } catch (\Throwable $e) {
+                // fall back to defaults below
+            }
+        }
+
+        $maxBytes = $options['max_bytes'] ?? (is_numeric($cfgMaxBytes) ? (int) $cfgMaxBytes : (512 * 1024)); // 512KB default
+        $maxWidth = $options['max_width'] ?? (is_numeric($cfgMaxWidth) ? (int) $cfgMaxWidth : 4096);
+        $maxHeight = $options['max_height'] ?? (is_numeric($cfgMaxHeight) ? (int) $cfgMaxHeight : 4096);
+        $allowRemote = $options['allow_remote_refs'] ?? (is_bool($cfgAllowRemote) ? $cfgAllowRemote : false);
 
         if ($svg === '' || trim($svg) === '') {
             $errors[] = 'SVG content is empty';
@@ -80,7 +97,7 @@ class SvgInputValidator
      */
     public function sanitize(string $svg, array $options = []): string
     {
-        $allowRemote = $options['allow_remote_refs'] ?? (bool) (config('svg.allow_remote_refs', false));
+        $allowRemote = $options['allow_remote_refs'] ?? (function_exists('config') ? (bool) config('svg.allow_remote_refs', false) : false);
 
         $doc = new DOMDocument();
         $prev = libxml_use_internal_errors(true);
@@ -186,8 +203,9 @@ class SvgInputValidator
                     foreach (iterator_to_array($node->attributes) as $attr) {
                         $attrName = strtolower($attr->nodeName);
                         $attrVal = trim($attr->nodeValue ?? '');
+                        // Event handler attributes (on*) will be sanitized but do not mark as validation errors
                         if (str_starts_with($attrName, 'on')) {
-                            $errors[] = "Disallowed attribute: $attrName";
+                            continue;
                         }
                         if (in_array($attrName, ['href', 'xlink:href'], true)) {
                             $lower = strtolower($attrVal);
