@@ -55,7 +55,8 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', (string) env('LOG_STACK', 'single')),
+            // Default to stderr (JSON) + conversion channel; override with LOG_STACK env if needed
+            'channels' => explode(',', (string) env('LOG_STACK', 'stderr,conversion')),
             'ignore_exceptions' => false,
         ],
 
@@ -68,6 +69,7 @@ return [
             ],
             'formatter' => JsonFormatter::class,
             // you can adjust formatter options via formatter_with if needed
+            'processors' => [PsrLogMessageProcessor::class],
             'replace_placeholders' => true,
         ],
 
@@ -114,7 +116,8 @@ return [
             'handler_with' => [
                 'stream' => 'php://stderr',
             ],
-            'formatter' => env('LOG_STDERR_FORMATTER'),
+            // Default to JSON for structured logs; can override via LOG_STDERR_FORMATTER
+            'formatter' => env('LOG_STDERR_FORMATTER', JsonFormatter::class),
             'processors' => [PsrLogMessageProcessor::class],
         ],
 

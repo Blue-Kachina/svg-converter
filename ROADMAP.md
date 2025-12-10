@@ -147,16 +147,23 @@ Notes:
 
 ## Phase 7: Monitoring & Observability
 ### 7.1 Logging
-- [ ] Implement structured logging with Monolog
-- [ ] Add request/response logging
-- [ ] Log conversion metrics and errors
-- [ ] Set up log aggregation
+- [x] Implement structured logging with Monolog
+- [x] Add request/response logging
+- [x] Log conversion metrics and errors
+- [x] Set up log aggregation
 
 ### 7.2 Metrics & Monitoring
-- [ ] Add performance metrics collection
-- [ ] Implement error rate tracking
-- [ ] Create conversion success/failure metrics
-- [ ] Set up alerting thresholds
+- [x] Add performance metrics collection
+- [x] Implement error rate tracking
+- [x] Create conversion success/failure metrics
+- [x] Set up alerting thresholds
+
+Notes:
+- Implemented lightweight cache-backed `MetricsRegistry` with counters and histograms; export in Prometheus text via `GET /api/metrics` (guarded by config and optional basic auth).
+- HTTP middleware now records `http_request_duration_ms` histogram, `http_requests_total`, `http_errors_total`, and `http_response_bytes_total` with method/path/status_class labels.
+- `SvgConversionService` records conversion latency, output bytes, cache hits, and success/failure counters including stage/reason labels.
+- Simple alerting via logs: when consecutive failures exceed `metrics.alerts.consecutive_failures_threshold`, emits a critical log once per cooldown window (`metrics.alerts.cooldown_seconds`). Counters reset on success.
+- Configuration in `config/metrics.php`; enabled by default but endpoint exposure is configurable.
 
 ---
 
