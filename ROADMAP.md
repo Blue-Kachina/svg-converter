@@ -68,23 +68,29 @@ Based on the project description, here's a structured development roadmap for yo
 - [x] Add diagnostic information
 
 ### 3.3 Batch Processing Endpoint
-- [ ] Create POST `/api/batch-convert` for multiple SVGs (optional)
-- [ ] Implement queue-based processing
-- [ ] Add status polling mechanism
+- [x] Create POST `/api/batch-convert` for multiple SVGs (optional)
+- [x] Implement queue-based processing
+- [x] Add status polling mechanism
 
 ---
 
 ## Phase 4: Background Jobs & Queues
 ### 4.1 Asynchronous Processing
-- [ ] Create conversion job class
-- [ ] Configure database queue driver
-- [ ] Implement job failure handling and retries
-- [ ] Add job monitoring and logging
+- [x] Create conversion job class
+- [x] Configure database queue driver
+- [x] Implement job failure handling and retries
+- [x] Add job monitoring and logging
 
 ### 4.2 Result Management
-- [ ] Create temporary storage solution for processing
-- [ ] Implement result retrieval mechanism
-- [ ] Add automatic cleanup of old results
+- [x] Create temporary storage solution for processing
+- [x] Implement result retrieval mechanism
+- [x] Add automatic cleanup of old results
+
+Notes:
+- Implemented a cache-backed `ResultStore` service (`App/Services/Results/ResultStore.php`) with configurable `svg.results.ttl` and `svg.results.prefix`.
+- `ConvertSvgJob` and `BatchConvertController` now use `ResultStore` for per-item results and batch meta.
+- Retrieval is via existing `GET /api/batch/{id}` which aggregates item statuses and includes `result_base64` when ready.
+- Automatic cleanup is handled by TTL expiration in the cache. Temporary filesystem cleanup remains available via `svg:clean-temp` command. 
 
 ---
 

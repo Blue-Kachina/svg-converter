@@ -48,4 +48,11 @@ return [
         // Files older than this (seconds) will be cleaned by the command
         'max_age_seconds' => env('SVG_TEMP_MAX_AGE', 24 * 3600), // 24h
     ],
+
+    // Result storage for batch processing
+    'results' => [
+        // seconds; how long batch results are retrievable
+        'ttl' => env('SVG_RESULTS_TTL', 3600),
+        'prefix' => env('SVG_RESULTS_PREFIX', 'svgconv:'),
+    ],
 ];
