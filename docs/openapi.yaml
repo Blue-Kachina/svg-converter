@@ -1,0 +1,308 @@
+openapi: 3.0.3
+info:
+  title: SVG Converter API
+  version: 0.1.0
+  description: |
+    Laravel-based microservice that converts SVG XML to PNG.
+
+    Notes
+    - Content negotiation supported for `/api/convert`: JSON (default), raw PNG via `Accept: image/png`, or plain base64 via `format=base64`.
+    - Batch conversions are queued; polling is supported via `GET /api/batch/{id}`.
+servers:
+  - url: http://localhost
+paths:
+  /api/ping:
+    get:
+      summary: Basic responsiveness check
+      responses:
+        '200':
+          description: Pong
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasicResponse'
+  /api/health:
+    get:
+      summary: Service health check
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /api/status:
+    get:
+      summary: Service diagnostics and status
+      responses:
+        '200':
+          description: Status info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+  /api/convert:
+    post:
+      summary: Convert an SVG to PNG
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConvertRequest'
+            examples:
+              simple:
+                value:
+                  svg: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><rect width=\"100\" height=\"100\" fill=\"#0099ff\"/></svg>"
+                  options:
+                    width: 100
+                    height: 100
+      responses:
+        '200':
+          description: Successful conversion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConvertResponseJson'
+            text/plain:
+              schema:
+                type: string
+                description: "Base64-encoded PNG when `format=base64`"
+            'image/png':
+              schema:
+                type: string
+                format: binary
+                description: "Raw PNG when Accept: image/png or format=png"
+        '400':
+          description: Conversion failure (invalid svg or exceeds limits)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/batch-convert:
+    post:
+      summary: Submit batch conversions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchConvertRequest'
+      responses:
+        '202':
+          description: Batch accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchAcceptedResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+  /api/batch/{id}:
+    get:
+      summary: Get batch status and results
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Batch status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatusResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/metrics:
+    get:
+      summary: Prometheus metrics
+      description: Exposes metrics if enabled via configuration. May require basic auth.
+      responses:
+        '200':
+          description: Prometheus text exposition
+          content:
+            'text/plain; version=0.0.4':
+              schema:
+                type: string
+components:
+  schemas:
+    ConvertOptions:
+      type: object
+      properties:
+        width:
+          type: integer
+          minimum: 1
+          maximum: 8192
+        height:
+          type: integer
+          minimum: 1
+          maximum: 8192
+        density:
+          type: integer
+          minimum: 1
+          maximum: 1200
+        background:
+          type: string
+          description: Hex color e.g. #ffffff
+        quality:
+          type: integer
+          minimum: 1
+          maximum: 100
+    ConvertRequest:
+      type: object
+      required: [svg]
+      properties:
+        svg:
+          type: string
+          description: SVG XML string
+        options:
+          $ref: '#/components/schemas/ConvertOptions'
+        format:
+          type: string
+          enum: [json, png, base64]
+          default: json
+    ConvertResponseJson:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            png_base64:
+              type: string
+        meta:
+          type: object
+          properties:
+            duration_ms:
+              type: integer
+            content_length:
+              type: integer
+    BatchConvertItem:
+      type: object
+      required: [svg]
+      properties:
+        svg:
+          type: string
+        options:
+          $ref: '#/components/schemas/ConvertOptions'
+    BatchConvertRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/BatchConvertItem'
+    BatchAcceptedResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            batch_id:
+              type: string
+            count:
+              type: integer
+    BatchItemStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, running, failed, succeeded]
+        result_base64:
+          type: string
+          nullable: true
+        result_bytes:
+          type: integer
+          nullable: true
+    BatchStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            batch_id:
+              type: string
+            status:
+              type: string
+            progress:
+              type: object
+              properties:
+                total: { type: integer }
+                processed: { type: integer }
+                failed: { type: integer }
+                pending: { type: integer }
+            items:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/BatchItemStatus'
+            meta:
+              type: object
+              additionalProperties: true
+    BasicResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          additionalProperties: true
+    HealthResponse:
+      allOf:
+        - $ref: '#/components/schemas/BasicResponse'
+    StatusResponse:
+      allOf:
+        - $ref: '#/components/schemas/BasicResponse'
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+    ValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+      properties:
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string

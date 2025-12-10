@@ -88,6 +88,13 @@ curl -X POST http://localhost/api/convert \
 - **Queue Processing**: Redis 
 - **Testing**: PHPUnit and Mockery are ready for use
 
+## Documentation
+- OpenAPI spec: `docs/openapi.yaml`
+- Setup guide: `docs/SETUP.md`
+- Configuration options: `docs/CONFIG.md`
+- Troubleshooting: `docs/TROUBLESHOOTING.md`
+- Usage examples: `docs/EXAMPLES.md`
+
 ## Security & Rate Limiting
 - Default rate limits (can be tuned via `config/svg.php` or env):
   - `POST /api/convert`: 60/min per IP/user (env `SVG_RATE_LIMIT_CONVERT`)
