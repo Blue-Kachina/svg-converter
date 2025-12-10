@@ -13,4 +13,5 @@ It's currently dev-only, and is set up using Sail.  Includes redis container
 At this point in time, you should be up and running.
 
 Interactive OpenAPI documentation is available here:
+
 [![Swagger UI](https://img.shields.io/badge/Swagger-UI-85EA2D?style=for-the-badge&logo=swagger)](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/Blue-Kachina/svg-converter/master/docs/openapi.yaml)
