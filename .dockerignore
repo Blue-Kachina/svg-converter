@@ -1,0 +1,21 @@
+# Ignore everything that isn't needed for the image build context
+.git
+.github
+.junie
+node_modules
+vendor
+storage/logs
+storage/framework/cache/data
+storage/framework/sessions
+storage/framework/views
+storage/app
+.idea
+.vscode
+# Keep composer.lock for reproducible builds
+#.lock files generated locally that are not needed can be added explicitly
+.env
+.env.*
+!.env.production.example
+coverage
+.phpunit.cache
+.phpunit.result.cache

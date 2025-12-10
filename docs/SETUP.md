@@ -3,7 +3,7 @@
 This project is a Laravel-based SVG → PNG conversion microservice. You can run it via Docker (Laravel Sail) or locally. Octane with FrankenPHP is supported.
 
 ## Prerequisites
-- Docker + Docker Compose (recommended), or PHP 8.2+, Composer, Node 20+ for local runs
+- Docker + Docker Compose (recommended), or PHP 8.4+, Composer, Node 20+ for local runs
 - Make sure ports are available:
   - APP_PORT (default 80)
   - VITE_PORT (default 5173)

@@ -1,0 +1,40 @@
+version: '3.9'
+services:
+  app:
+    image: svg-converter:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      LOG_CHANNEL: stderr
+      OCTANE_SERVER: frankenphp
+      OCTANE_WORKERS: 4
+      OCTANE_MAX_REQUESTS: 250
+      # Database defaults to SQLite; override for other drivers
+      DB_CONNECTION: sqlite
+      DB_DATABASE: database/database.sqlite
+      # Metrics
+      METRICS_ENABLED: 'true'
+      METRICS_EXPOSE: 'false'
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - app_storage:/app/storage
+      - app_database:/app/database
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost/api/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  # Uncomment to include Redis for future scaling
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "${FORWARD_REDIS_PORT:-6379}:6379"
+  #   restart: unless-stopped
+volumes:
+  app_storage:
+  app_database:
