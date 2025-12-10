@@ -132,10 +132,16 @@ Notes:
 - [x] Test with real SVG samples
 
 ### 6.3 Performance Testing
-- [ ] Benchmark conversion speeds
-- [ ] Test memory usage under load
-- [ ] Load test API endpoints
-- [ ] Optimize bottlenecks
+- [x] Benchmark conversion speeds
+- [x] Test memory usage under load
+- [x] Load test API endpoints
+- [x] Optimize bottlenecks
+
+Notes:
+- Added Artisan commands `svg:benchmark` and `svg:load-test` for local measurement.
+- `svg:benchmark` gathers latency (min/avg/p50/p90/p95/p99/max), output size stats, and process peak memory across repeated conversions.
+- `svg:load-test` drives concurrent POSTs to `/api/convert` using Laravel HTTP client pools; reports success rate, throughput, latency percentiles, and error breakdown.
+- Use Sail to run inside the container for consistent results: `sail artisan svg:benchmark --iterations=100` and `sail artisan svg:load-test --requests=200 --concurrency=20`.
 
 ---
 

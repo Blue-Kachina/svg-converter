@@ -74,6 +74,15 @@ curl -X POST http://localhost/api/convert \
 ```
 
 
+## Performance & Load Testing
+- Benchmark conversion speed and memory in-process:
+  - `sail artisan svg:benchmark --iterations=100 --width=256 --height=256 --density=300 --quality=90 --warmup=5`
+- Load test the /api/convert endpoint:
+  - `sail artisan svg:load-test --url=http://localhost/api/convert --requests=200 --concurrency=20 --format=json`
+- Tips:
+  - Run inside Sail/Octane for stable numbers. For Octane: `sail artisan octane:start --server=frankenphp --workers=1 --max-requests=250`
+  - Use `--format=png` to request raw PNG and exercise content negotiation.
+
 ## Notes
 - **Dependencies Already Included**: Guzzle HTTP, Faker for testing, and Symfony components are already available in composer setup
 - **Queue Processing**: Redis 
