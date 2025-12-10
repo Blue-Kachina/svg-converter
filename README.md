@@ -12,7 +12,7 @@ It's currently dev-only, and is set up using Sail.  Includes redis container
 - From another terminal: `vendor/bin/sail composer octane-queue`
 At this point in time, you should be up and running.
 
-Note: there's [OpenAPI Documentation](/docs/openapi.yaml) that you can use from PostMan/similar application
+Note: there's [OpenAPI Documentation](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/Blue-Kachina/svg-converter/main/docs/openapi.yaml) that you can use from PostMan/similar application
 
 
 #### POST /api/convert
