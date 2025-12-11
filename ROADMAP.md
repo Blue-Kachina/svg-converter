@@ -187,6 +187,7 @@ Notes:
 - [x] Deployment to staging
 - [x] Production deployment
 - [x] Monitor for issues
+- [ ] Prod && Staging Deployments Need Workers
 
 ---
 
