@@ -1,27 +1,20 @@
 services:
   app:
-    image: svg-converter:latest
+    image: ${IMAGE:-svg-converter:latest}
     build:
       context: .
       dockerfile: Dockerfile
     environment:
-      APP_ENV: production
+      APP_ENV: staging
       APP_DEBUG: 'false'
       LOG_CHANNEL: stderr
       OCTANE_SERVER: frankenphp
-      OCTANE_WORKERS: 4
+      OCTANE_WORKERS: 2
       OCTANE_MAX_REQUESTS: 250
-      OCTANE_ADMIN_PORT: 2020
-      # Enable FrankenPHP admin API bound to localhost for Octane control
-      CADDY_ADMIN: 127.0.0.1:2020
-      # Database defaults to SQLite; override for other drivers
       DB_CONNECTION: sqlite
       DB_DATABASE: database/database.sqlite
-      # View cache is disabled by default for API-only service
-      ENABLE_VIEW_CACHE: 'false'
-      # Metrics
       METRICS_ENABLED: 'true'
-      METRICS_EXPOSE: 'false'
+      METRICS_EXPOSE: 'true'
       # Redis configuration
       REDIS_CLIENT: phpredis
       REDIS_HOST: redis
@@ -31,10 +24,10 @@ services:
       QUEUE_CONNECTION: redis
       SESSION_DRIVER: redis
     ports:
-      - "${APP_PORT:-8080}:80"
+      - "${APP_PORT:-8081}:80"
     volumes:
-      - app_storage:/app/storage
-      - app_database:/app/database
+      - app_storage_staging:/app/storage
+      - app_database_staging:/app/database
     depends_on:
       - redis
     restart: unless-stopped
@@ -50,8 +43,7 @@ services:
     restart: unless-stopped
 
   queue:
-    image: svg-converter:latest
-    # Run a lightweight init, then start the queue worker
+    image: ${IMAGE:-svg-converter:latest}
     entrypoint: ["/bin/sh", "-lc"]
     command: >-
       # Generate a runtime APP_KEY if not provided
@@ -70,7 +62,7 @@ services:
       --timeout=${QUEUE_TIMEOUT:-90}
       --max-time=${QUEUE_MAX_TIME:-3600}
     environment:
-      APP_ENV: production
+      APP_ENV: staging
       APP_DEBUG: 'false'
       LOG_CHANNEL: stderr
       # Ensure Laravel can boot without the full entrypoint
@@ -78,20 +70,18 @@ services:
       # Database (defaults to SQLite)
       DB_CONNECTION: ${DB_CONNECTION:-sqlite}
       DB_DATABASE: ${DB_DATABASE:-database/database.sqlite}
-      # Redis configuration
       REDIS_CLIENT: phpredis
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      # Ensure app uses Redis for queues
       QUEUE_CONNECTION: redis
     volumes:
-      - app_storage:/app/storage
-      - app_database:/app/database
+      - app_storage_staging:/app/storage
+      - app_database_staging:/app/database
     depends_on:
       - redis
     restart: unless-stopped
-    # Scale with: docker compose -f docker-compose.prod.yml up -d --scale queue=3
+    # Scale with: docker compose -f docker-compose.staging.yml up -d --scale queue=2
 
 volumes:
-  app_storage:
-  app_database:
+  app_storage_staging:
+  app_database_staging:

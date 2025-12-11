@@ -9,6 +9,7 @@ storage/framework/cache/data
 storage/framework/sessions
 storage/framework/views
 storage/app
+bootstrap/cache/*.php
 .idea
 .vscode
 # Keep composer.lock for reproducible builds

@@ -2,19 +2,34 @@
 # Multi-stage build to keep runtime image small.
 
 # --- Build stage: install PHP dependencies
-FROM composer:2 AS vendor
+FROM php:8.4-cli AS vendor
 WORKDIR /app
+
+# Install required tools for Composer (dist archives) and enable php-zip
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       git unzip zip ca-certificates libzip-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && docker-php-ext-configure zip \
+    && docker-php-ext-install zip
+
+# Install Composer by copying the binary from the official image
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+ENV COMPOSER_ALLOW_SUPERUSER=1 \
+    COMPOSER_CACHE_DIR=/tmp/composer-cache
+
 COPY composer.json composer.lock ./
-# Prefer dist, no dev, optimize autoloader
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+# Prefer dist, no dev, optimize autoloader; avoid running scripts during build
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts --no-progress
 
 # --- Runtime stage: FrankenPHP with PHP 8.4+
 # See: https://github.com/dunglas/frankenphp
-FROM dunglas/frankenphp:latest-php8.4 AS runtime
+FROM dunglas/frankenphp:1-php8.4 AS runtime
 
 # Enable required PHP extensions (Imagick optional; present in this image variants when available)
-# If you need additional extensions, uncomment and adjust.
-# RUN install-php-extensions imagick
+# Octane requires signal handling; enable pcntl. Add imagick if needed for real conversions.
+RUN install-php-extensions pcntl redis
+RUN install-php-extensions imagick
 
 ENV APP_ENV=production \
     APP_DEBUG=false \
@@ -41,11 +56,8 @@ RUN mkdir -p storage/framework/{cache,sessions,views} \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R ug+rwX storage bootstrap/cache
 
-# Optimize Laravel caches (config, routes, events). These commands are safe even if some caches are empty.
-RUN php artisan key:generate --force \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache || true
+# Ensure no stale Laravel caches are present at build time. Runtime caching happens in entrypoint.
+RUN rm -f bootstrap/cache/*.php || true
 
 # Copy entrypoint script and make it executable
 COPY scripts/entrypoint.sh /entrypoint.sh
